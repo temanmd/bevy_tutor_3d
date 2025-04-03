@@ -1,6 +1,5 @@
-use std::f32::consts::TAU;
-
 use crate::character::{Character, STARTING_TRANSLATION};
+use crate::movement::update_position;
 use bevy::input::mouse::{MouseMotion, MouseWheel};
 use bevy::prelude::*;
 
@@ -31,7 +30,10 @@ impl Default for OrbitCamera {
 impl Plugin for CameraPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, spawn_camera);
-        app.add_systems(Update, (zoom_camera, orbit_camera).chain());
+        app.add_systems(
+            Update,
+            (zoom_camera, orbit_camera).chain().after(update_position),
+        );
     }
 }
 

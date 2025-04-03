@@ -9,7 +9,7 @@ impl Plugin for MovementPlugin {
     }
 }
 
-fn update_position(
+pub fn update_position(
     mut query: Query<(&Velocity, &mut Transform), With<Character>>,
     time: Res<Time>,
 ) {
