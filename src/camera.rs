@@ -47,7 +47,7 @@ fn zoom_camera(
     mut orbit: Single<&mut OrbitCamera>,
 ) {
     for event in mouse_wheel_events.read() {
-        let zoom_sensitivity = 2.0; // подберите значение чувствительности под себя
+        let zoom_sensitivity = 3.0;
         orbit.radius = (orbit.radius - event.y * zoom_sensitivity).clamp(20.0, 150.0);
     }
 }
