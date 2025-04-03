@@ -1,3 +1,5 @@
+use std::f32::consts::TAU;
+
 use crate::character::{Character, STARTING_TRANSLATION};
 use bevy::input::mouse::{MouseMotion, MouseWheel};
 use bevy::prelude::*;
@@ -20,7 +22,7 @@ impl Default for OrbitCamera {
         Self {
             target: STARTING_TRANSLATION + TARGET_OFFSET,
             yaw: 0.0,
-            pitch: 0.0,
+            pitch: 0.5,
             radius: DEFAULT_CAMERA_DISTANCE,
         }
     }
@@ -36,8 +38,7 @@ impl Plugin for CameraPlugin {
 fn spawn_camera(mut commands: Commands) {
     commands.spawn((
         Camera3d::default(),
-        Transform::from_xyz(0., DEFAULT_CAMERA_DISTANCE, -DEFAULT_CAMERA_DISTANCE)
-            .looking_at(STARTING_TRANSLATION, Vec3::Z),
+        Transform::default(),
         OrbitCamera::default(),
     ));
 }
@@ -66,14 +67,15 @@ fn orbit_camera(
 
         for event in mouse_motion_events.read() {
             orbit.yaw -= event.delta.x * sensitivity;
-            orbit.pitch -= event.delta.y * sensitivity;
+            orbit.pitch += event.delta.y * sensitivity;
         }
 
         orbit.pitch = orbit.pitch.clamp(0.1, 1.4835);
     }
 
-    let rotation = Quat::from_euler(EulerRot::YXZ, orbit.yaw, -orbit.pitch, 0.0);
-    let offset = rotation * Vec3::new(0., orbit.radius, -orbit.radius);
+    orbit.yaw %= std::f32::consts::TAU;
+    let rotation = Quat::from_euler(EulerRot::YXZ, orbit.yaw, orbit.pitch, 0.0);
+    let offset = rotation * Vec3::new(0., 0., -orbit.radius);
 
     transform.translation = orbit.target + offset;
     transform.look_at(orbit.target, Vec3::Y);
