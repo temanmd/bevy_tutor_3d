@@ -16,7 +16,7 @@ fn main() {
         .insert_resource(ClearColor(Color::srgb(0.1, 0.1, 0.1)))
         .insert_resource(AmbientLight {
             color: Color::WHITE,
-            brightness: 1000.,
+            brightness: 1200.,
         })
         .add_plugins(DefaultPlugins)
         .add_plugins(CharacterPlugin)
