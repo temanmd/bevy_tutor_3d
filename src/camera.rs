@@ -1,26 +1,27 @@
 use crate::character::{Character, STARTING_TRANSLATION};
-use bevy::input::mouse::MouseMotion;
+use bevy::input::mouse::{MouseMotion, MouseWheel};
 use bevy::prelude::*;
 
-const CAMERA_DISTANCE: f32 = 100.;
+const DEFAULT_CAMERA_DISTANCE: f32 = 100.;
+const TARGET_OFFSET: Vec3 = Vec3::new(0., 9., 0.);
 
 pub struct CameraPlugin;
 
 #[derive(Component, Debug)]
-struct OrbitCamera {
+pub struct OrbitCamera {
     target: Vec3,
+    pub yaw: f32,
+    pub pitch: f32,
     radius: f32,
-    yaw: f32,
-    pitch: f32,
 }
 
 impl Default for OrbitCamera {
     fn default() -> Self {
         Self {
-            target: STARTING_TRANSLATION,
-            radius: CAMERA_DISTANCE,
+            target: STARTING_TRANSLATION + TARGET_OFFSET,
             yaw: 0.0,
             pitch: 0.0,
+            radius: DEFAULT_CAMERA_DISTANCE,
         }
     }
 }
@@ -28,59 +29,52 @@ impl Default for OrbitCamera {
 impl Plugin for CameraPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, spawn_camera);
-        app.add_systems(Update, (move_camera_target, orbit_camera_system));
+        app.add_systems(Update, (zoom_camera, orbit_camera).chain());
     }
 }
 
-#[derive(Component, Debug, Default)]
-struct CameraTarget();
-
 fn spawn_camera(mut commands: Commands) {
-    commands
-        .spawn((
-            CameraTarget::default(),
-            Transform::from_translation(STARTING_TRANSLATION),
-        ))
-        .with_child((
-            Camera3d::default(),
-            Transform::from_xyz(0., CAMERA_DISTANCE, -100.)
-                .looking_at(STARTING_TRANSLATION, Vec3::Z),
-            OrbitCamera::default(),
-        ));
+    commands.spawn((
+        Camera3d::default(),
+        Transform::from_xyz(0., DEFAULT_CAMERA_DISTANCE, -DEFAULT_CAMERA_DISTANCE)
+            .looking_at(STARTING_TRANSLATION, Vec3::Z),
+        OrbitCamera::default(),
+    ));
 }
 
-fn move_camera_target(
-    mut query: Query<&mut Transform, With<CameraTarget>>,
-    query_player: Query<&Transform, (With<Character>, Without<CameraTarget>)>,
+fn zoom_camera(
+    mut mouse_wheel_events: EventReader<MouseWheel>,
+    mut orbit: Single<&mut OrbitCamera>,
 ) {
-    let mut transform = query.single_mut();
-    let character_transform = query_player.single();
-
-    transform.translation = character_transform.translation;
+    for event in mouse_wheel_events.read() {
+        let zoom_sensitivity = 2.0; // подберите значение чувствительности под себя
+        orbit.radius = (orbit.radius - event.y * zoom_sensitivity).clamp(20.0, 150.0);
+    }
 }
 
-fn orbit_camera_system(
+fn orbit_camera(
     mouse_button_input: Res<ButtonInput<MouseButton>>,
     mut mouse_motion_events: EventReader<MouseMotion>,
     mut query: Query<(&mut Transform, &mut OrbitCamera), With<Camera3d>>,
+    player_transform: Single<&Transform, (With<Character>, Without<Camera3d>)>,
 ) {
+    let (mut transform, mut orbit) = query.single_mut();
+    orbit.target = player_transform.translation + TARGET_OFFSET;
+
     if mouse_button_input.pressed(MouseButton::Right) {
         let sensitivity = 0.005;
-        for event in mouse_motion_events.read() {
-            let (mut transform, mut orbit) = query.single_mut();
 
+        for event in mouse_motion_events.read() {
             orbit.yaw -= event.delta.x * sensitivity;
             orbit.pitch -= event.delta.y * sensitivity;
-            orbit.pitch = orbit.pitch.clamp(0.2, 1.4835);
-
-            let offset = Vec3::new(
-                orbit.radius * orbit.yaw.cos() * orbit.pitch.cos(),
-                orbit.radius * orbit.pitch.sin(),
-                orbit.radius * orbit.yaw.sin() * orbit.pitch.cos(),
-            );
-
-            transform.translation = orbit.target + offset;
-            transform.look_at(orbit.target, Vec3::Y);
         }
+
+        orbit.pitch = orbit.pitch.clamp(0.1, 1.4835);
     }
+
+    let rotation = Quat::from_euler(EulerRot::YXZ, orbit.yaw, -orbit.pitch, 0.0);
+    let offset = rotation * Vec3::new(0., orbit.radius, -orbit.radius);
+
+    transform.translation = orbit.target + offset;
+    transform.look_at(orbit.target, Vec3::Y);
 }
