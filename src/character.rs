@@ -1,11 +1,11 @@
 use bevy::prelude::*;
 
 pub const STARTING_TRANSLATION: Vec3 = Vec3::new(0., 0., 0.);
-pub const STARTING_VELOCITY: Vec3 = Vec3::new(0., 0., 1.);
+pub const STARTING_VELOCITY: f32 = 40.;
 
 #[derive(Component, Debug)]
 pub struct Velocity {
-    pub value: Vec3,
+    pub value: f32,
 }
 
 #[derive(Component, Default)]

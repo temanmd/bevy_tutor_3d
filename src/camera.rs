@@ -1,10 +1,10 @@
 use crate::character::Character;
-use crate::movement::update_position;
+use crate::movement::move_player_towards_camera;
 use bevy::input::mouse::{MouseMotion, MouseWheel};
 use bevy::prelude::*;
 
 const DEFAULT_CAMERA_DISTANCE: f32 = 100.;
-const TARGET_LOOK_AT_OFFSET: Vec3 = Vec3::new(0., 9., 0.);
+const TARGET_LOOK_TO_OFFSET: Vec3 = Vec3::new(0., 9., 0.);
 
 pub struct CameraPlugin;
 
@@ -13,6 +13,7 @@ pub struct OrbitCamera {
     pub yaw: f32,
     pub pitch: f32,
     radius: f32,
+    pub normalized_forward: Vec3,
 }
 
 impl Default for OrbitCamera {
@@ -21,6 +22,7 @@ impl Default for OrbitCamera {
             yaw: 0.0,
             pitch: 0.5,
             radius: DEFAULT_CAMERA_DISTANCE,
+            normalized_forward: Vec3::default(),
         }
     }
 }
@@ -30,7 +32,9 @@ impl Plugin for CameraPlugin {
         app.add_systems(Startup, spawn_camera);
         app.add_systems(
             Update,
-            (zoom_camera, orbit_camera).chain().after(update_position),
+            (zoom_camera, orbit_camera)
+                .chain()
+                .after(move_player_towards_camera),
         );
     }
 }
@@ -73,8 +77,17 @@ fn orbit_camera(
     let offset = rotation * Vec3::new(0., 0., -orbit.radius);
 
     let player_translation = &player_transform.translation;
-    let target_look_to = -offset + TARGET_LOOK_AT_OFFSET;
+    let target_look_to = -offset + TARGET_LOOK_TO_OFFSET;
 
     transform.translation = player_translation + offset;
     transform.look_to(target_look_to, Vec3::Y);
+
+    let mut forward: Vec3 = transform.forward().into();
+
+    forward.y = 0.0;
+    if forward.length_squared() > 0.0 {
+        forward = forward.normalize();
+    }
+
+    orbit.normalized_forward = forward;
 }
