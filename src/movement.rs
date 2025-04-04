@@ -26,19 +26,21 @@ pub fn move_player_towards_camera(
     let mut movement = Vec3::default();
 
     if keyboard_input.pressed(KeyCode::KeyW) {
-        movement += *camera_transform.forward();
+        movement += camera_transform.forward().reject_from(Vec3::Y);
     }
     if keyboard_input.pressed(KeyCode::KeyS) {
-        movement += *camera_transform.back();
+        movement += camera_transform.back().reject_from(Vec3::Y);
     }
     if keyboard_input.pressed(KeyCode::KeyA) {
-        movement += *camera_transform.left();
+        movement += camera_transform.left().reject_from(Vec3::Y);
     }
     if keyboard_input.pressed(KeyCode::KeyD) {
-        movement += *camera_transform.right();
+        movement += camera_transform.right().reject_from(Vec3::Y);
     }
 
-    movement = movement.with_y(0.0);
+    info!("{movement:?}");
+
+    movement = movement.clamp_length_max(1.0);
     let target = transform.translation + movement;
 
     transform.look_at(target, Vec3::Y);

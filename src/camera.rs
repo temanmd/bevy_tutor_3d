@@ -19,7 +19,7 @@ impl Default for OrbitCamera {
     fn default() -> Self {
         Self {
             yaw: 0.0,
-            pitch: 0.5,
+            pitch: 1.,
             radius: DEFAULT_CAMERA_DISTANCE,
         }
     }
