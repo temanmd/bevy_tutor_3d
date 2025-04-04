@@ -1,16 +1,15 @@
-use crate::character::{Character, STARTING_TRANSLATION};
+use crate::character::Character;
 use crate::movement::update_position;
 use bevy::input::mouse::{MouseMotion, MouseWheel};
 use bevy::prelude::*;
 
 const DEFAULT_CAMERA_DISTANCE: f32 = 100.;
-const TARGET_OFFSET: Vec3 = Vec3::new(0., 9., 0.);
+const TARGET_LOOK_AT_OFFSET: Vec3 = Vec3::new(0., 9., 0.);
 
 pub struct CameraPlugin;
 
 #[derive(Component, Debug)]
 pub struct OrbitCamera {
-    target: Vec3,
     pub yaw: f32,
     pub pitch: f32,
     radius: f32,
@@ -19,7 +18,6 @@ pub struct OrbitCamera {
 impl Default for OrbitCamera {
     fn default() -> Self {
         Self {
-            target: STARTING_TRANSLATION + TARGET_OFFSET,
             yaw: 0.0,
             pitch: 0.5,
             radius: DEFAULT_CAMERA_DISTANCE,
@@ -38,11 +36,7 @@ impl Plugin for CameraPlugin {
 }
 
 fn spawn_camera(mut commands: Commands) {
-    commands.spawn((
-        Camera3d::default(),
-        Transform::default(),
-        OrbitCamera::default(),
-    ));
+    commands.spawn((Camera3d::default(), OrbitCamera::default()));
 }
 
 fn zoom_camera(
@@ -62,7 +56,6 @@ fn orbit_camera(
     player_transform: Single<&Transform, (With<Character>, Without<Camera3d>)>,
 ) {
     let (mut transform, mut orbit) = query.single_mut();
-    orbit.target = player_transform.translation + TARGET_OFFSET;
 
     if mouse_button_input.pressed(MouseButton::Right) {
         let sensitivity = 0.005;
@@ -79,6 +72,9 @@ fn orbit_camera(
     let rotation = Quat::from_euler(EulerRot::YXZ, orbit.yaw, orbit.pitch, 0.0);
     let offset = rotation * Vec3::new(0., 0., -orbit.radius);
 
-    transform.translation = orbit.target + offset;
-    transform.look_at(orbit.target, Vec3::Y);
+    let player_translation = &player_transform.translation;
+    let target_look_at = player_translation + TARGET_LOOK_AT_OFFSET;
+
+    transform.translation = player_translation + offset;
+    transform.look_at(target_look_at, Vec3::Y);
 }
