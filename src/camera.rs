@@ -73,8 +73,8 @@ fn orbit_camera(
     let offset = rotation * Vec3::new(0., 0., -orbit.radius);
 
     let player_translation = &player_transform.translation;
-    let target_look_at = player_translation + TARGET_LOOK_AT_OFFSET;
+    let target_look_to = -offset + TARGET_LOOK_AT_OFFSET;
 
     transform.translation = player_translation + offset;
-    transform.look_at(target_look_at, Vec3::Y);
+    transform.look_to(target_look_to, Vec3::Y);
 }
