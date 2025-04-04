@@ -8,7 +8,7 @@ pub struct Velocity {
     pub value: f32,
 }
 
-#[derive(Component, Default)]
+#[derive(Component)]
 pub struct Character;
 
 pub struct CharacterPlugin;
@@ -29,7 +29,7 @@ fn spawn_character(mut commands: Commands, asset_server: Res<AssetServer>) {
         Velocity {
             value: STARTING_VELOCITY,
         },
-        Character::default(),
+        Character,
         SceneRoot(asset_server.load(GltfAssetLabel::Scene(0).from_asset("character.glb"))),
     ));
 }
