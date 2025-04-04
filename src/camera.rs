@@ -13,7 +13,10 @@ pub struct OrbitCamera {
     pub yaw: f32,
     pub pitch: f32,
     radius: f32,
-    pub normalized_forward: Vec3,
+    pub forward_move_vec: Vec3,
+    pub backward_move_vec: Vec3,
+    pub left_move_vec: Vec3,
+    pub right_move_vec: Vec3,
 }
 
 impl Default for OrbitCamera {
@@ -22,7 +25,10 @@ impl Default for OrbitCamera {
             yaw: 0.0,
             pitch: 0.5,
             radius: DEFAULT_CAMERA_DISTANCE,
-            normalized_forward: Vec3::default(),
+            forward_move_vec: Vec3::default(),
+            backward_move_vec: Vec3::default(),
+            left_move_vec: Vec3::default(),
+            right_move_vec: Vec3::default(),
         }
     }
 }
@@ -82,12 +88,29 @@ fn orbit_camera(
     transform.translation = player_translation + offset;
     transform.look_to(target_look_to, Vec3::Y);
 
+    set_move_directions(&transform, &mut orbit);
+}
+
+fn set_move_directions(transform: &Transform, orbit: &mut OrbitCamera) {
     let mut forward: Vec3 = transform.forward().into();
 
     forward.y = 0.0;
     if forward.length_squared() > 0.0 {
         forward = forward.normalize();
     }
+    let right = forward.cross(Vec3::Y).normalize();
+    let movement = Vec3::ZERO;
 
-    orbit.normalized_forward = forward;
+    orbit.forward_move_vec = normalize_non_zero_vec(movement + forward);
+    orbit.backward_move_vec = normalize_non_zero_vec(movement - forward);
+    orbit.right_move_vec = normalize_non_zero_vec(movement + right);
+    orbit.left_move_vec = normalize_non_zero_vec(movement - right);
+}
+
+fn normalize_non_zero_vec(vec: Vec3) -> Vec3 {
+    if vec.length_squared() > 0.0 {
+        vec.normalize()
+    } else {
+        vec
+    }
 }

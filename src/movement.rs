@@ -18,12 +18,25 @@ pub fn move_player_towards_camera(
     player: Single<(&mut Transform, &Velocity), With<Character>>,
     time: Res<Time>,
 ) {
-    if keyboard_input.pressed(KeyCode::KeyW) {
-        let (mut transform, velocity) = player.into_inner();
-
-        let forward = &camera.normalized_forward;
-        let target = transform.translation + forward;
-        transform.look_at(target, Vec3::Y);
-        transform.translation += forward * velocity.value * time.delta_secs();
+    if !keyboard_input.any_pressed([KeyCode::KeyW, KeyCode::KeyA, KeyCode::KeyS, KeyCode::KeyD]) {
+        return;
     }
+
+    let (mut transform, velocity) = player.into_inner();
+    let mut movement = Vec3::default();
+
+    if keyboard_input.pressed(KeyCode::KeyW) {
+        movement = camera.forward_move_vec;
+    } else if keyboard_input.pressed(KeyCode::KeyS) {
+        movement = camera.backward_move_vec;
+    } else if keyboard_input.pressed(KeyCode::KeyA) {
+        movement = camera.left_move_vec;
+    } else if keyboard_input.pressed(KeyCode::KeyD) {
+        movement = camera.right_move_vec;
+    }
+
+    let target = transform.translation + movement;
+
+    transform.look_at(target, Vec3::Y);
+    transform.translation += movement * velocity.value * time.delta_secs();
 }
