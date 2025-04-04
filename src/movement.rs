@@ -44,7 +44,7 @@ pub fn move_player_towards_camera(
         movement += right;
     }
 
-    movement = movement.clamp_length_max(1.0);
+    movement = movement.normalize_or_zero();
     let target = transform.translation + movement;
 
     transform.look_at(target, Vec3::Y);
