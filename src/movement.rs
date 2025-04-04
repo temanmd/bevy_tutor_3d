@@ -14,7 +14,7 @@ impl Plugin for MovementPlugin {
 
 pub fn move_player_towards_camera(
     keyboard_input: Res<ButtonInput<KeyCode>>,
-    camera: Single<&OrbitCamera>,
+    camera_transform: Single<&Transform, (With<OrbitCamera>, Without<Character>)>,
     player: Single<(&mut Transform, &Velocity), With<Character>>,
     time: Res<Time>,
 ) {
@@ -26,22 +26,19 @@ pub fn move_player_towards_camera(
     let mut movement = Vec3::default();
 
     if keyboard_input.pressed(KeyCode::KeyW) {
-        movement += camera.forward_move_vec;
+        movement += *camera_transform.forward();
     }
     if keyboard_input.pressed(KeyCode::KeyS) {
-        movement += camera.backward_move_vec;
+        movement += *camera_transform.back();
     }
     if keyboard_input.pressed(KeyCode::KeyA) {
-        movement += camera.left_move_vec;
+        movement += *camera_transform.left();
     }
     if keyboard_input.pressed(KeyCode::KeyD) {
-        movement += camera.right_move_vec;
+        movement += *camera_transform.right();
     }
 
-    if movement.length_squared() > 0.0 {
-        movement = movement.normalize();
-    }
-
+    movement = movement.with_y(0.0);
     let target = transform.translation + movement;
 
     transform.look_at(target, Vec3::Y);
