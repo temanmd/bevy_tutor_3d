@@ -26,13 +26,20 @@ pub fn move_player_towards_camera(
     let mut movement = Vec3::default();
 
     if keyboard_input.pressed(KeyCode::KeyW) {
-        movement = camera.forward_move_vec;
-    } else if keyboard_input.pressed(KeyCode::KeyS) {
-        movement = camera.backward_move_vec;
-    } else if keyboard_input.pressed(KeyCode::KeyA) {
-        movement = camera.left_move_vec;
-    } else if keyboard_input.pressed(KeyCode::KeyD) {
-        movement = camera.right_move_vec;
+        movement += camera.forward_move_vec;
+    }
+    if keyboard_input.pressed(KeyCode::KeyS) {
+        movement += camera.backward_move_vec;
+    }
+    if keyboard_input.pressed(KeyCode::KeyA) {
+        movement += camera.left_move_vec;
+    }
+    if keyboard_input.pressed(KeyCode::KeyD) {
+        movement += camera.right_move_vec;
+    }
+
+    if movement.length_squared() > 0.0 {
+        movement = movement.normalize();
     }
 
     let target = transform.translation + movement;
