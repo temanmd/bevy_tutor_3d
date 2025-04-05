@@ -11,10 +11,20 @@ impl Plugin for FloorPlugin {
     }
 }
 
-fn spawn_floor(mut commands: Commands, asset_server: Res<AssetServer>) {
+fn spawn_floor(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+    mut meshes: ResMut<Assets<Mesh>>,
+) {
+    let image = asset_server.load("textures/grass.png");
+
     commands.spawn((
-        Transform::from_translation(Vec3::ZERO).with_scale(Vec3::new(20., 10., 20.)),
-        SceneRoot(asset_server.load(GltfAssetLabel::Scene(0).from_asset("floor_green.glb"))),
+        Mesh3d(meshes.add(Plane3d::default().mesh().size(200., 200.))),
+        MeshMaterial3d(materials.add(StandardMaterial {
+            base_color_texture: Some(image.clone()),
+            ..default()
+        })),
         Floor,
     ));
 }
