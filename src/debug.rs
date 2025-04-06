@@ -21,10 +21,10 @@ fn add_debug_ui(mut commands: Commands) {
 }
 
 fn print_position(query: Query<(Entity, &Transform), With<Character>>) {
-    for (entity, transform) in query.iter() {
-        info!(
-            "Entity {:?} is at position {:?},",
-            entity, transform.translation
-        );
-    }
+    // for (entity, transform) in query.iter() {
+    //     info!(
+    //         "Entity {:?} is at position {:?},",
+    //         entity, transform.translation
+    //     );
+    // }
 }

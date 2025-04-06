@@ -4,6 +4,9 @@ use crate::{
 };
 use bevy::prelude::*;
 
+const AVAILABLE_MOVE_KEYS: [KeyCode; 4] =
+    [KeyCode::KeyW, KeyCode::KeyA, KeyCode::KeyS, KeyCode::KeyD];
+
 pub struct MovementPlugin;
 
 impl Plugin for MovementPlugin {
@@ -18,7 +21,7 @@ pub fn move_player_towards_camera(
     player: Single<(&mut Transform, &Velocity), With<Character>>,
     time: Res<Time>,
 ) {
-    if !keyboard_input.any_pressed([KeyCode::KeyW, KeyCode::KeyA, KeyCode::KeyS, KeyCode::KeyD]) {
+    if !keyboard_input.any_pressed(AVAILABLE_MOVE_KEYS) {
         return;
     }
 

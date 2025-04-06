@@ -22,6 +22,7 @@ fn add_light(mut commands: Commands) {
         )),
         DirectionalLight {
             shadows_enabled: true,
+            illuminance: 10000.,
             ..default()
         },
         CascadeShadowConfigBuilder {
