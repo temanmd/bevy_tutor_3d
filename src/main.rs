@@ -1,3 +1,4 @@
+use animation::AnimationPlugin;
 use bevy::prelude::*;
 use camera::CameraPlugin;
 use character::CharacterPlugin;
@@ -6,6 +7,7 @@ use floor::FloorPlugin;
 use light::LightPlugin;
 use movement::MovementPlugin;
 
+mod animation;
 mod camera;
 mod character;
 mod debug;
@@ -23,5 +25,6 @@ fn main() {
         .add_plugins(LightPlugin)
         .add_plugins(MovementPlugin)
         .add_plugins(FloorPlugin)
+        .add_plugins(AnimationPlugin)
         .run();
 }
