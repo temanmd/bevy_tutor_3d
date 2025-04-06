@@ -37,23 +37,9 @@ fn load_animation(
 fn setup_scene_once_loaded(
     mut commands: Commands,
     animations: Res<Animations>,
-    graphs: Res<Assets<AnimationGraph>>,
-    mut clips: ResMut<Assets<AnimationClip>>,
+
     mut players: Query<(Entity, &mut AnimationPlayer), Added<AnimationPlayer>>,
 ) {
-    fn get_clip<'a>(
-        node: AnimationNodeIndex,
-        graph: &AnimationGraph,
-        clips: &'a mut Assets<AnimationClip>,
-    ) -> &'a mut AnimationClip {
-        let node = graph.get(node).unwrap();
-        let clip = match &node.node_type {
-            AnimationNodeType::Clip(handle) => clips.get_mut(handle),
-            _ => unreachable!(),
-        };
-        clip.unwrap()
-    }
-
     if let Ok(player_data) = players.get_single_mut() {
         let (entity, mut player) = player_data;
         let mut transitions = AnimationTransitions::new();
@@ -76,7 +62,7 @@ fn animate_on_move(
 ) {
     if keyboard_input.any_just_pressed(AVAILABLE_MOVE_KEYS) {
         for (mut player, mut transitions) in &mut animation_players {
-            let Some((&playing_animation_index, _)) = player.playing_animations().next() else {
+            let Some((&_, _)) = player.playing_animations().next() else {
                 continue;
             };
 
@@ -92,7 +78,7 @@ fn animate_on_move(
         && !keyboard_input.any_pressed(AVAILABLE_MOVE_KEYS)
     {
         for (mut player, mut transitions) in &mut animation_players {
-            let Some((&playing_animation_index, _)) = player.playing_animations().next() else {
+            let Some((&_, _)) = player.playing_animations().next() else {
                 continue;
             };
 
