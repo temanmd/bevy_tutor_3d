@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
 pub const STARTING_TRANSLATION: Vec3 = Vec3::new(0., 0., 0.);
-pub const STARTING_VELOCITY: f32 = 40.;
+pub const STARTING_VELOCITY: f32 = 50.;
 pub const CHARACTER_MODEL_PATH: &str = "character.glb";
 
 #[derive(Component, Debug)]

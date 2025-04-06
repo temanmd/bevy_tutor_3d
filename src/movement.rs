@@ -4,7 +4,7 @@ use crate::{
 };
 use bevy::prelude::*;
 
-const AVAILABLE_MOVE_KEYS: [KeyCode; 4] =
+pub const AVAILABLE_MOVE_KEYS: [KeyCode; 4] =
     [KeyCode::KeyW, KeyCode::KeyA, KeyCode::KeyS, KeyCode::KeyD];
 
 pub struct MovementPlugin;
