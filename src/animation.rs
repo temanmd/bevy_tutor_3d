@@ -1,4 +1,4 @@
-use crate::character::{CHARACTER_MODEL_PATH, MoveState};
+use crate::player::{MoveState, PLAYER_MODEL_PATH};
 use bevy::prelude::*;
 use std::time::Duration;
 
@@ -22,8 +22,8 @@ fn load_animation(
     mut graphs: ResMut<Assets<AnimationGraph>>,
 ) {
     let (graph, node_indices) = AnimationGraph::from_clips([
-        asset_server.load(GltfAssetLabel::Animation(8).from_asset(CHARACTER_MODEL_PATH)),
-        asset_server.load(GltfAssetLabel::Animation(37).from_asset(CHARACTER_MODEL_PATH)),
+        asset_server.load(GltfAssetLabel::Animation(8).from_asset(PLAYER_MODEL_PATH)),
+        asset_server.load(GltfAssetLabel::Animation(37).from_asset(PLAYER_MODEL_PATH)),
     ]);
 
     let graph_handle = graphs.add(graph);

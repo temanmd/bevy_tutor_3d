@@ -1,4 +1,4 @@
-use crate::character::Character;
+use crate::player::Player;
 use bevy::prelude::*;
 use iyes_perf_ui::{PerfUiPlugin, prelude::PerfUiDefaultEntries};
 
@@ -20,7 +20,7 @@ fn add_debug_ui(mut commands: Commands) {
     commands.spawn(PerfUiDefaultEntries::default());
 }
 
-fn print_position(query: Query<(Entity, &Transform), With<Character>>) {
+fn print_position(query: Query<(Entity, &Transform), With<Player>>) {
     // for (entity, transform) in query.iter() {
     //     info!(
     //         "Entity {:?} is at position {:?},",

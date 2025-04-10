@@ -2,7 +2,7 @@ use bevy::prelude::*;
 
 pub const STARTING_TRANSLATION: Vec3 = Vec3::new(0., 0., 0.);
 pub const STARTING_VELOCITY: f32 = 70.;
-pub const CHARACTER_MODEL_PATH: &str = "character.glb";
+pub const PLAYER_MODEL_PATH: &str = "models/player.glb";
 
 #[derive(Component, Debug)]
 pub struct Velocity {
@@ -10,7 +10,7 @@ pub struct Velocity {
 }
 
 #[derive(Component, Default, Debug)]
-pub struct Character {}
+pub struct Player {}
 
 #[derive(Default, PartialEq, Component, Debug)]
 pub enum MoveState {
@@ -19,15 +19,15 @@ pub enum MoveState {
     Run,
 }
 
-pub struct CharacterPlugin;
+pub struct PlayerPlugin;
 
-impl Plugin for CharacterPlugin {
+impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, spawn_character);
+        app.add_systems(Startup, spawn_player);
     }
 }
 
-pub fn spawn_character(mut commands: Commands, asset_server: Res<AssetServer>) {
+pub fn spawn_player(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn((
         Transform {
             rotation: Quat::from_rotation_y(std::f32::consts::PI),
@@ -37,8 +37,8 @@ pub fn spawn_character(mut commands: Commands, asset_server: Res<AssetServer>) {
         Velocity {
             value: STARTING_VELOCITY,
         },
-        Character::default(),
+        Player::default(),
         MoveState::default(),
-        SceneRoot(asset_server.load(GltfAssetLabel::Scene(0).from_asset(CHARACTER_MODEL_PATH))),
+        SceneRoot(asset_server.load(GltfAssetLabel::Scene(0).from_asset(PLAYER_MODEL_PATH))),
     ));
 }

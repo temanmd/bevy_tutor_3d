@@ -1,10 +1,10 @@
-use crate::character::Character;
 use crate::movement::move_player_towards_camera;
+use crate::player::Player;
 use bevy::input::mouse::{MouseMotion, MouseWheel};
 use bevy::prelude::*;
 
 const DEFAULT_CAMERA_DISTANCE: f32 = 100.;
-const TARGET_LOOK_TO_OFFSET: Vec3 = Vec3::new(0., 17., 0.);
+const TARGET_LOOK_TO_OFFSET: Vec3 = Vec3::new(0., 20., 0.);
 
 pub struct CameraPlugin;
 
@@ -58,7 +58,7 @@ fn orbit_camera(
     mouse_button_input: Res<ButtonInput<MouseButton>>,
     mut mouse_motion_events: EventReader<MouseMotion>,
     mut query: Query<(&mut Transform, &mut OrbitCamera), With<Camera3d>>,
-    player_transform: Single<&Transform, (With<Character>, Without<Camera3d>)>,
+    player_transform: Single<&Transform, (With<Player>, Without<Camera3d>)>,
 ) {
     let (mut transform, mut orbit) = query.single_mut();
 

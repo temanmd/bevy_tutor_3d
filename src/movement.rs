@@ -1,6 +1,6 @@
 use crate::{
     camera::OrbitCamera,
-    character::{Character, MoveState, Velocity},
+    player::{MoveState, Player, Velocity},
 };
 use bevy::prelude::*;
 
@@ -17,8 +17,8 @@ impl Plugin for MovementPlugin {
 
 pub fn move_player_towards_camera(
     keyboard_input: Res<ButtonInput<KeyCode>>,
-    camera_transform: Single<&Transform, (With<OrbitCamera>, Without<Character>)>,
-    player: Single<(&mut Transform, &Velocity, &mut MoveState), With<Character>>,
+    camera_transform: Single<&Transform, (With<OrbitCamera>, Without<Player>)>,
+    player: Single<(&mut Transform, &Velocity, &mut MoveState), With<Player>>,
     time: Res<Time>,
 ) {
     let (mut transform, velocity, mut move_state) = player.into_inner();
