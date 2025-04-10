@@ -1,4 +1,4 @@
-use crate::{character::CHARACTER_MODEL_PATH, movement::AVAILABLE_MOVE_KEYS};
+use crate::character::{CHARACTER_MODEL_PATH, MoveState};
 use bevy::prelude::*;
 use std::time::Duration;
 
@@ -11,7 +11,7 @@ pub struct AnimationPlugin;
 
 impl Plugin for AnimationPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, load_animation);
+        app.add_systems(Startup, (load_animation,));
         app.add_systems(Update, (setup_scene_once_loaded, animate_on_move));
     }
 }
@@ -26,7 +26,6 @@ fn load_animation(
         asset_server.load(GltfAssetLabel::Animation(37).from_asset(CHARACTER_MODEL_PATH)),
     ]);
 
-    // Insert a resource with the current scene information
     let graph_handle = graphs.add(graph);
     commands.insert_resource(Animations {
         animations: node_indices,
@@ -37,9 +36,13 @@ fn load_animation(
 fn setup_scene_once_loaded(
     mut commands: Commands,
     animations: Res<Animations>,
-
     mut players: Query<(Entity, &mut AnimationPlayer), Added<AnimationPlayer>>,
+    mut done: Local<bool>,
 ) {
+    if *done {
+        return;
+    }
+
     if let Ok(player_data) = players.get_single_mut() {
         let (entity, mut player) = player_data;
         let mut transitions = AnimationTransitions::new();
@@ -52,43 +55,40 @@ fn setup_scene_once_loaded(
             .entity(entity)
             .insert(AnimationGraphHandle(animations.graph.clone()))
             .insert(transitions);
+
+        *done = true;
     }
 }
 
 fn animate_on_move(
-    keyboard_input: Res<ButtonInput<KeyCode>>,
     mut animation_players: Query<(&mut AnimationPlayer, &mut AnimationTransitions)>,
+    move_states: Query<&MoveState, Changed<MoveState>>,
     animations: Res<Animations>,
 ) {
-    if keyboard_input.any_just_pressed(AVAILABLE_MOVE_KEYS) {
+    if let Ok(move_state) = move_states.get_single() {
         for (mut player, mut transitions) in &mut animation_players {
-            let Some((&_, _)) = player.playing_animations().next() else {
-                continue;
-            };
-
-            transitions
-                .play(
-                    &mut player,
-                    animations.animations[1],
-                    Duration::from_millis(250),
-                )
-                .repeat();
-        }
-    } else if keyboard_input.any_just_released(AVAILABLE_MOVE_KEYS)
-        && !keyboard_input.any_pressed(AVAILABLE_MOVE_KEYS)
-    {
-        for (mut player, mut transitions) in &mut animation_players {
-            let Some((&_, _)) = player.playing_animations().next() else {
-                continue;
-            };
-
-            transitions
-                .play(
-                    &mut player,
-                    animations.animations[0],
-                    Duration::from_millis(250),
-                )
-                .repeat();
+            match *move_state {
+                MoveState::Idle => {
+                    transitions
+                        .play(
+                            &mut player,
+                            animations.animations[0],
+                            Duration::from_millis(150),
+                        )
+                        .set_speed(1.5)
+                        .repeat();
+                }
+                MoveState::Run => {
+                    transitions
+                        .play(
+                            &mut player,
+                            animations.animations[1],
+                            Duration::from_millis(150),
+                        )
+                        .set_speed(1.5)
+                        .repeat();
+                }
+            }
         }
     }
 }

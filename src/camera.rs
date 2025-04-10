@@ -4,7 +4,7 @@ use bevy::input::mouse::{MouseMotion, MouseWheel};
 use bevy::prelude::*;
 
 const DEFAULT_CAMERA_DISTANCE: f32 = 100.;
-const TARGET_LOOK_TO_OFFSET: Vec3 = Vec3::new(0., 9., 0.);
+const TARGET_LOOK_TO_OFFSET: Vec3 = Vec3::new(0., 17., 0.);
 
 pub struct CameraPlugin;
 
