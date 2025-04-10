@@ -5,6 +5,8 @@ use bevy::prelude::*;
 
 const DEFAULT_CAMERA_DISTANCE: f32 = 100.;
 const TARGET_LOOK_TO_OFFSET: Vec3 = Vec3::new(0., 20., 0.);
+const ZOOM_SENSITIVITY: f32 = 3.0;
+const CAMERA_ORBIT_SENSITIVITY: f32 = 0.005;
 
 pub struct CameraPlugin;
 
@@ -43,14 +45,15 @@ fn spawn_camera(mut commands: Commands) {
 
 fn zoom_camera(
     mut mouse_wheel_events: EventReader<MouseWheel>,
-    mut orbit: Single<&mut OrbitCamera>,
+    mut orbit_query: Query<&mut OrbitCamera>,
 ) {
-    for event in mouse_wheel_events.read() {
-        let zoom_sensitivity = 3.0;
-        orbit.radius = event
-            .y
-            .mul_add(-zoom_sensitivity, orbit.radius)
-            .clamp(30.0, 150.0);
+    if let Ok(mut orbit_camera) = orbit_query.get_single_mut() {
+        for event in mouse_wheel_events.read() {
+            orbit_camera.radius = event
+                .y
+                .mul_add(-ZOOM_SENSITIVITY, orbit_camera.radius)
+                .clamp(70.0, 200.0);
+        }
     }
 }
 
@@ -63,7 +66,7 @@ fn orbit_camera(
     let (mut transform, mut orbit) = query.single_mut();
 
     if mouse_button_input.pressed(MouseButton::Right) {
-        let sensitivity = 0.005;
+        let sensitivity = CAMERA_ORBIT_SENSITIVITY;
 
         for event in mouse_motion_events.read() {
             orbit.yaw -= event.delta.x * sensitivity;
