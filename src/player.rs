@@ -7,6 +7,7 @@ pub const PLAYER_MODEL_PATH: &str = "models/player.glb";
 #[derive(Component, Debug)]
 pub struct Velocity {
     pub value: f32,
+    pub target: Option<Vec3>,
 }
 
 #[derive(Component, Default, Debug)]
@@ -36,6 +37,7 @@ pub fn spawn_player(mut commands: Commands, asset_server: Res<AssetServer>) {
         },
         Velocity {
             value: STARTING_VELOCITY,
+            target: None,
         },
         Player::default(),
         MoveState::default(),

@@ -11,71 +11,106 @@ pub struct MovementPlugin;
 
 impl Plugin for MovementPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, move_player_towards_camera);
+        app.add_systems(
+            Update,
+            (
+                (
+                    move_player_direction_controller,
+                    move_player_animation_controller,
+                ),
+                move_rotate_player,
+            )
+                .chain(),
+        );
+        app.add_observer(on_player_move);
     }
 }
 
-pub fn move_player_towards_camera(
-    keyboard_input: Res<ButtonInput<KeyCode>>,
-    camera_transform: Single<&Transform, (With<OrbitCamera>, Without<Player>)>,
-    player: Single<(&mut Transform, &Velocity, &mut MoveState), With<Player>>,
-    time: Res<Time>,
-) {
-    let (mut transform, velocity, mut move_state) = player.into_inner();
+#[derive(Event)]
+struct PlayerMove {
+    direction: Vec3,
+}
 
+fn move_player_animation_controller(
+    keyboard_input: Res<ButtonInput<KeyCode>>,
+    mut player_query: Query<&mut MoveState, With<Player>>,
+) {
+    if let Ok(mut player_move_state) = player_query.get_single_mut() {
+        if keyboard_input.any_just_pressed(AVAILABLE_MOVE_KEYS) {
+            player_move_state.set_if_neq(MoveState::Run);
+        } else if keyboard_input.any_just_released(AVAILABLE_MOVE_KEYS)
+            && !keyboard_input.any_pressed(AVAILABLE_MOVE_KEYS)
+        {
+            player_move_state.set_if_neq(MoveState::Idle);
+        }
+    }
+}
+
+fn move_player_direction_controller(
+    keyboard_input: Res<ButtonInput<KeyCode>>,
+    mut commands: Commands,
+) {
     if !keyboard_input.any_pressed(AVAILABLE_MOVE_KEYS) {
-        move_state.set_if_neq(MoveState::Idle);
         return;
     }
 
-    move_state.set_if_neq(MoveState::Run);
-
-    let delta_secs = time.delta_secs();
-    let mut movement = Vec3::default();
-    let forward = camera_transform.forward().with_y(0.0).normalize_or_zero();
-
-    let right = forward.cross(Vec3::Y).normalize();
-    let left = -right;
-    let back = -forward;
+    let mut input_direction = Vec3::ZERO;
 
     if keyboard_input.pressed(KeyCode::KeyW) {
-        movement += forward;
-        if keyboard_input.pressed(KeyCode::KeyD) {
-            movement += right;
-        } else if keyboard_input.pressed(KeyCode::KeyA) {
-            movement += left;
-        }
-    } else if keyboard_input.pressed(KeyCode::KeyS) {
-        movement += back;
-        if keyboard_input.pressed(KeyCode::KeyD) {
-            movement += right;
-        } else if keyboard_input.pressed(KeyCode::KeyA) {
-            movement += left;
-        }
-    } else if keyboard_input.pressed(KeyCode::KeyA) {
-        movement += left;
-        if keyboard_input.pressed(KeyCode::KeyW) {
-            movement += forward;
-        } else if keyboard_input.pressed(KeyCode::KeyS) {
-            movement += back;
-        }
-    } else if keyboard_input.pressed(KeyCode::KeyD) {
-        movement += right;
-        if keyboard_input.pressed(KeyCode::KeyW) {
-            movement += forward;
-        } else if keyboard_input.pressed(KeyCode::KeyS) {
-            movement += back;
-        }
+        input_direction.z += 1.0;
+    }
+    if keyboard_input.pressed(KeyCode::KeyS) {
+        input_direction.z -= 1.0;
+    }
+    if keyboard_input.pressed(KeyCode::KeyA) {
+        input_direction.x -= 1.0;
+    }
+    if keyboard_input.pressed(KeyCode::KeyD) {
+        input_direction.x += 1.0;
     }
 
-    movement = movement.normalize_or_zero();
-    let target = transform.translation + movement;
+    commands.trigger(PlayerMove {
+        direction: input_direction.normalize_or_zero(),
+    });
+}
 
-    let target_rotation = transform.looking_at(target, Vec3::Y).rotation;
+fn on_player_move(
+    trigger: Trigger<PlayerMove>,
+    mut player_query: Query<&mut Velocity, With<Player>>,
+    camera_query: Query<&Transform, (With<OrbitCamera>, Without<Player>)>,
+) {
+    if let Ok(mut player_data) = player_query.get_single_mut() {
+        if let Ok(camera_transform) = camera_query.get_single() {
+            let direction = &trigger.direction;
+            let forward = camera_transform.forward().with_y(0.0).normalize_or_zero();
+            let right = forward.cross(Vec3::Y).normalize();
+            let world_direction = forward * direction.z + right * direction.x;
 
-    transform
-        .rotation
-        .smooth_nudge(&target_rotation, 10.0, delta_secs);
+            player_data.target = Some(world_direction);
+        }
+    }
+}
 
-    transform.translation += movement * velocity.value * delta_secs;
+pub fn move_rotate_player(
+    mut player_data: Query<(&mut Transform, &mut Velocity), With<Player>>,
+    time: Res<Time>,
+) {
+    if let Ok(player_data) = player_data.get_single_mut() {
+        if player_data.1.target.is_some() {
+            let (mut transform, mut velocity) = player_data;
+
+            let delta_secs = time.delta_secs();
+            let move_target = velocity.target.unwrap();
+            let target = transform.translation + move_target;
+            let target_rotation = transform.looking_at(target, Vec3::Y).rotation;
+
+            transform
+                .rotation
+                .smooth_nudge(&target_rotation, 10.0, delta_secs);
+
+            transform.translation += move_target * velocity.value * delta_secs;
+
+            velocity.target = None;
+        }
+    }
 }

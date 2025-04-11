@@ -1,4 +1,4 @@
-use crate::movement::move_player_towards_camera;
+use crate::movement::move_rotate_player;
 use crate::player::Player;
 use bevy::input::mouse::{MouseMotion, MouseWheel};
 use bevy::prelude::*;
@@ -34,7 +34,7 @@ impl Plugin for CameraPlugin {
             Update,
             (zoom_camera, orbit_camera)
                 .chain()
-                .after(move_player_towards_camera),
+                .after(move_rotate_player),
         );
     }
 }
