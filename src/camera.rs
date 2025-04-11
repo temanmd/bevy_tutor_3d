@@ -2,6 +2,7 @@ use crate::movement::move_rotate_player;
 use crate::player::Player;
 use bevy::input::mouse::{MouseMotion, MouseWheel};
 use bevy::prelude::*;
+use bevy::window::CursorGrabMode;
 
 const DEFAULT_CAMERA_DISTANCE: f32 = 100.;
 const TARGET_LOOK_TO_OFFSET: Vec3 = Vec3::new(0., 20., 0.);
@@ -32,9 +33,12 @@ impl Plugin for CameraPlugin {
         app.add_systems(Startup, spawn_camera);
         app.add_systems(
             Update,
-            (zoom_camera, orbit_camera)
-                .chain()
-                .after(move_rotate_player),
+            (
+                (zoom_camera, orbit_camera)
+                    .chain()
+                    .after(move_rotate_player),
+                orbit_camera_mouse_controller,
+            ),
         );
     }
 }
@@ -54,6 +58,19 @@ fn zoom_camera(
                 .mul_add(-ZOOM_SENSITIVITY, orbit_camera.radius)
                 .clamp(70.0, 200.0);
         }
+    }
+}
+
+fn orbit_camera_mouse_controller(
+    mouse_button_input: Res<ButtonInput<MouseButton>>,
+    mut window: Single<&mut Window>,
+) {
+    if mouse_button_input.pressed(MouseButton::Right) {
+        window.cursor_options.visible = false;
+        window.cursor_options.grab_mode = CursorGrabMode::Locked;
+    } else if mouse_button_input.just_released(MouseButton::Right) {
+        window.cursor_options.visible = true;
+        window.cursor_options.grab_mode = CursorGrabMode::None;
     }
 }
 
