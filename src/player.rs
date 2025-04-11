@@ -1,4 +1,4 @@
-use bevy::{math::VectorSpace, prelude::*};
+use bevy::prelude::*;
 
 pub const STARTING_TRANSLATION: Vec3 = Vec3::new(0., 0., 0.);
 pub const STARTING_VELOCITY: f32 = 70.;
